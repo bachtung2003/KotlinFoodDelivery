@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "46203803249",
+    "firebase_url": "https://food-pos-adb69-default-rtdb.firebaseio.com",
+    "project_id": "food-pos-adb69",
+    "storage_bucket": "food-pos-adb69.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46203803249:android:1253f5db4acd8f23576dd0",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgawQkN3ud6Ihpt3nkSk5IX_8cWewQ3xc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
