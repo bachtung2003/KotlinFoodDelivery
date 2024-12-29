@@ -1,5 +1,6 @@
 package com.example.myapplication.Activity
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -7,12 +8,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -40,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import coil.compose.AsyncImage
 import com.example.myapplication.Model.FoodModel
 import com.example.myapplication.R
@@ -52,14 +51,33 @@ class CategorizedItemActivity : BaseActivity() {
         val categoryId = intent.getStringExtra("categoryId") ?: return
 
         setContent {
-            CategorizedItemScreen(categoryId)
+            CategorizedItemScreen(categoryId,
+                onFoodClick = {
+                    food ->
+                val intent = Intent(this,ShowItemActivity::class.java)
+                intent.putExtra("object",food)
+                startActivity(intent)
+            })
+
         }
     }
 }
 
 
 @Composable
-fun CategorizedItemScreen(categoryId: String) {
+fun CategorizedItemScreen(
+    categoryId: String,
+    onFoodClick: (FoodModel) -> Unit = {}
+) {
+    val categoryTitles = mapOf(
+        "0" to "Pizza",
+        "1" to "Burgers",
+        "2" to "Hotdog",
+        "3" to "Drink",
+        "4" to "Donut"
+    )
+    val categoryTitle = categoryTitles[categoryId] ?: "Unknown Category"
+
     val viewModel = MainViewModel()
     val foods = remember { mutableStateListOf<FoodModel>() }
     var showLoading by remember { mutableStateOf(true) }
@@ -80,14 +98,35 @@ fun CategorizedItemScreen(categoryId: String) {
 
     Scaffold(
         content = { paddingValues ->
-            Column(
+            ConstraintLayout(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                val (titleRef, gridRef, paginationRef) = createRefs()
+
+                // Title
+                Text(
+                    text = categoryTitle,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(R.color.red),
+                    modifier = Modifier
+                        .constrainAs(titleRef) {
+                            top.linkTo(parent.top, margin = 24.dp)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        }
+                        .padding(8.dp)
+                )
+
                 if (showLoading) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .constrainAs(gridRef) {
+                                top.linkTo(titleRef.bottom, margin = 16.dp)
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
@@ -99,33 +138,38 @@ fun CategorizedItemScreen(categoryId: String) {
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier
-                                .weight(1f) // Ensures grid takes available space
+                                .constrainAs(gridRef) {
+                                    top.linkTo(titleRef.bottom, margin = 16.dp)
+                                    bottom.linkTo(paginationRef.top, margin = 8.dp)
+                                    height = Dimension.fillToConstraints
+                                }
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
                         ) {
                             val currentItems = paginatedFoods[currentPage]
                             items(currentItems) { food ->
                                 FoodItem2(
                                     food = food,
-                                    onFoodClick = {}
+                                    onFoodClick
                                 )
                             }
                         }
 
-                        // Spacer to separate grid from pagination controls
-                        Spacer(modifier = Modifier.height(8.dp))
-
+                        // Pagination Controls
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .constrainAs(paginationRef) {
+                                    bottom.linkTo(parent.bottom, margin = 16.dp)
+                                }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Button(
                                 onClick = { if (currentPage > 0) currentPage-- },
-                                enabled = currentPage > 0
+                                enabled = currentPage > 0,
                             ) {
-                                Text(text = "Previous")
+                                Text(text = "Previous",)
                             }
 
                             Text(
@@ -135,14 +179,18 @@ fun CategorizedItemScreen(categoryId: String) {
 
                             Button(
                                 onClick = { if (currentPage < paginatedFoods.size - 1) currentPage++ },
-                                enabled = currentPage < paginatedFoods.size - 1
+                                enabled = currentPage < paginatedFoods.size - 1,
                             ) {
-                                Text(text = "Next")
+                                Text(text = "Next",)
                             }
                         }
                     } else {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .constrainAs(gridRef) {
+                                    top.linkTo(titleRef.bottom, margin = 16.dp)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(text = "No items available")
@@ -153,6 +201,7 @@ fun CategorizedItemScreen(categoryId: String) {
         }
     )
 }
+
 
 
 
